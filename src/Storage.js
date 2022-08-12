@@ -213,15 +213,16 @@ const isArrayType = x => Array.isArray(x) && typeof x[0] === 'string' && typeof 
 
 export const createStore = (schema, size) => {
   const $store = Symbol('store')
+  let store
 
   if (!schema || !Object.keys(schema).length) {
     // tag component
-    stores[$store] = {
+    store = {
       [$storeSize]: size,
       [$tagStore]: true,
-      [$storeBase]: () => stores[$store]
+      [$storeBase]: () => store
     }
-    return stores[$store]
+    return store
   }
 
   schema = JSON.parse(JSON.stringify(schema))
@@ -257,14 +258,14 @@ export const createStore = (schema, size) => {
       if (typeof a[k] === 'string') {
 
         a[k] = createTypeStore(a[k], size)
-        a[k][$storeBase] = () => stores[$store]
+        a[k][$storeBase] = () => store
         metadata[$storeFlattened].push(a[k])
 
       } else if (isArrayType(a[k])) {
         
         const [type, length] = a[k]
         a[k] = createArrayStore(metadata, type, length)
-        a[k][$storeBase] = () => stores[$store]
+        a[k][$storeBase] = () => store
         metadata[$storeFlattened].push(a[k])
         // Object.seal(a[k])
 
@@ -278,16 +279,12 @@ export const createStore = (schema, size) => {
       return a
     }
 
-    stores[$store] = Object.assign(Object.keys(schema).reduce(recursiveTransform, schema), metadata)
-    stores[$store][$storeBase] = () => stores[$store]
+    store = Object.assign(Object.keys(schema).reduce(recursiveTransform, schema), metadata)
+    store[$storeBase] = () => store
 
-    // Object.seal(stores[$store])
+    // Object.seal(store)
 
-    return stores[$store]
+    return store
 
   }
-}
-
-export const free = (store) => {
-  delete stores[store[$storeRef]]
 }
