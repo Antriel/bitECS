@@ -1,4 +1,4 @@
-import { deleteWorld } from './Universe.js'
+import { createUniverse, deleteWorld, resetUniverse } from './Universe.js'
 import { createWorld, resetWorld, getWorldComponents, getAllEntities } from './World.js'
 import { addEntity, removeEntity, getEntityComponents, entityExists } from './Entity.js'
 import { defineComponent, registerComponent, registerComponents, hasComponent, addComponent, removeComponent } from './Component.js'
@@ -21,8 +21,11 @@ export const Types = TYPES_ENUM
 
 export {
 
-  createWorld,
+  createUniverse,
   deleteWorld,
+  resetUniverse,
+
+  createWorld,
   resetWorld,
   addEntity,
   removeEntity,
