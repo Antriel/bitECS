@@ -1,6 +1,6 @@
 import { $indexBytes, $indexType, $isEidType, $serializeShadow, $storeBase, $storeFlattened, $tagStore, createShadow } from "./Storage.js"
 import { $componentMap, addComponent, hasComponent } from "./Component.js"
-import { $entityArray, $entitySparseSet, addEntity, eidToWorld } from "./Entity.js"
+import { $entityArray, $entitySparseSet, addEntity } from "./Entity.js"
 import { $localEntities, $localEntityLookup } from "./World.js"
 import { SparseSet } from "./Util.js"
 
@@ -107,7 +107,7 @@ export const defineSerializer = (target, maxBytes = 20000000) => {
       world = ents
       ents = ents[$entityArray]
     } else {
-      world = eidToWorld.get(ents[0])
+      throw "not implemented"
     }
 
     let where = 0

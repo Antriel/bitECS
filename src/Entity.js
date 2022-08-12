@@ -7,8 +7,6 @@ export const $entitySparseSet = Symbol('entitySparseSet')
 export const $entityArray = Symbol('entityArray')
 export const $entityIndices = Symbol('entityIndices')
 
-export const eidToWorld = new Map()
-
 /**
  * Adds a new entity to the specified world.
  *
@@ -23,7 +21,6 @@ export const addEntity = (world) => {
   if(world[$universe].entityCursor >= world[$universe].capacity) throw new Error(`bitECS - Cannot create entity beyond capacity`)
   
   world[$entitySparseSet].add(eid)
-  eidToWorld.set(eid, world)
 
   world[$notQueries].forEach(q => {
     const match = queryCheckEntity(world, q, eid)

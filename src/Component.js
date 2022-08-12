@@ -1,7 +1,7 @@
 import { $storeSize, createStore, resetStoreFor, resizeStore } from './Storage.js'
 import { $queries, queryAddEntity, queryRemoveEntity, queryCheckEntity, commitRemovals } from './Query.js'
 import { $bitflag, $universe } from './World.js'
-import { $entityMasks, eidToWorld, $entityComponents, $entitySparseSet } from './Entity.js'
+import { $entityMasks, $entityComponents, $entitySparseSet } from './Entity.js'
 import { globalUniverse } from './Universe.js'
 
 export const $componentMap = Symbol('componentMap')
