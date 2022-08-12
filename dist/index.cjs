@@ -31,6 +31,7 @@ __export(src_exports, {
   addComponent: () => addComponent,
   addEntity: () => addEntity,
   commitRemovals: () => commitRemovals,
+  createUniverse: () => createUniverse,
   createWorld: () => createWorld,
   defineComponent: () => defineComponent,
   defineDeserializer: () => defineDeserializer,
@@ -53,22 +54,28 @@ __export(src_exports, {
   removeEntity: () => removeEntity,
   removeQuery: () => removeQuery,
   resetChangedQuery: () => resetChangedQuery,
+  resetUniverse: () => resetUniverse,
   resetWorld: () => resetWorld
 });
 
 // src/Universe.js
 var MAX_ENTITIES = 1e4;
-var createUniverse = () => {
+var createUniverse = (capacity = MAX_ENTITIES) => {
   return {
     worlds: [],
     removedEntities: [],
     components: [],
     entityCursor: 0,
-    capacity: MAX_ENTITIES
+    capacity
   };
 };
 var deleteWorld = (universe, world) => {
   universe.worlds.splice(universe.worlds.indexOf(world), 1);
+};
+var resetUniverse = (universe, maxEntities = MAX_ENTITIES) => {
+  universe.capacity = maxEntities;
+  universe.entityCursor = 0;
+  universe.removedEntities.length = 0;
 };
 var globalUniverse = createUniverse();
 
@@ -137,7 +144,6 @@ var $serializeShadow = Symbol("serializeShadow");
 var $indexType = Symbol("indexType");
 var $indexBytes = Symbol("indexBytes");
 var $isEidType = Symbol("isEidType");
-var stores = {};
 var createShadow = (store, key) => {
   if (!ArrayBuffer.isView(store)) {
     const shadowStore = store[$parentArray].slice(0);
@@ -204,13 +210,14 @@ var createArrayStore = (metadata, type, length) => {
 var isArrayType = (x) => Array.isArray(x) && typeof x[0] === "string" && typeof x[1] === "number";
 var createStore = (schema, size) => {
   const $store = Symbol("store");
+  let store;
   if (!schema || !Object.keys(schema).length) {
-    stores[$store] = {
+    store = {
       [$storeSize]: size,
       [$tagStore]: true,
-      [$storeBase]: () => stores[$store]
+      [$storeBase]: () => store
     };
-    return stores[$store];
+    return store;
   }
   schema = JSON.parse(JSON.stringify(schema));
   const arrayElementCounts = {};
@@ -240,21 +247,21 @@ var createStore = (schema, size) => {
     const recursiveTransform = (a, k) => {
       if (typeof a[k] === "string") {
         a[k] = createTypeStore(a[k], size);
-        a[k][$storeBase] = () => stores[$store];
+        a[k][$storeBase] = () => store;
         metadata[$storeFlattened].push(a[k]);
       } else if (isArrayType(a[k])) {
         const [type, length] = a[k];
         a[k] = createArrayStore(metadata, type, length);
-        a[k][$storeBase] = () => stores[$store];
+        a[k][$storeBase] = () => store;
         metadata[$storeFlattened].push(a[k]);
       } else if (a[k] instanceof Object) {
         a[k] = Object.keys(a[k]).reduce(recursiveTransform, a[k]);
       }
       return a;
     };
-    stores[$store] = Object.assign(Object.keys(schema).reduce(recursiveTransform, schema), metadata);
-    stores[$store][$storeBase] = () => stores[$store];
-    return stores[$store];
+    store = Object.assign(Object.keys(schema).reduce(recursiveTransform, schema), metadata);
+    store[$storeBase] = () => store;
+    return store;
   }
 };
 
@@ -300,12 +307,12 @@ var $entityComponents = Symbol("entityComponents");
 var $entitySparseSet = Symbol("entitySparseSet");
 var $entityArray = Symbol("entityArray");
 var $entityIndices = Symbol("entityIndices");
-var eidToWorld = /* @__PURE__ */ new Map();
 var addEntity = (world) => {
   const { removedEntities, capacity } = world[$universe];
   const eid = removedEntities.length > Math.round(capacity * 0.01) ? removedEntities.shift() : world[$universe].entityCursor++;
+  if (world[$universe].entityCursor >= world[$universe].capacity)
+    throw new Error(`bitECS - Cannot create entity beyond capacity`);
   world[$entitySparseSet].add(eid);
-  eidToWorld.set(eid, world);
   world[$notQueries].forEach((q) => {
     const match = queryCheckEntity(world, q, eid);
     if (match)
@@ -386,7 +393,7 @@ var exitQuery = (query) => (world) => {
   return exited;
 };
 var registerQuery = (world, query) => {
-  const components2 = [];
+  const components = [];
   const notComponents = [];
   const changedComponents = [];
   query[$queryComponents].forEach((c) => {
@@ -399,16 +406,16 @@ var registerQuery = (world, query) => {
       }
       if (mod === "changed") {
         changedComponents.push(comp);
-        components2.push(comp);
+        components.push(comp);
       }
     } else {
       if (!world[$componentMap].has(c))
         registerComponent(world, c);
-      components2.push(c);
+      components.push(c);
     }
   });
   const mapComponents = (c) => world[$componentMap].get(c);
-  const allComponents = components2.concat(notComponents).map(mapComponents);
+  const allComponents = components.concat(notComponents).map(mapComponents);
   const sparseSet = SparseSet();
   const archetypes = [];
   const changed = [];
@@ -427,15 +434,15 @@ var registerQuery = (world, query) => {
     a[c.generationId] |= c.bitflag;
     return a;
   };
-  const masks = components2.map(mapComponents).reduce(reduceBitflags, {});
+  const masks = components.map(mapComponents).reduce(reduceBitflags, {});
   const notMasks = notComponents.map(mapComponents).reduce(reduceBitflags, {});
   const hasMasks = allComponents.reduce(reduceBitflags, {});
-  const flatProps = components2.filter((c) => !c[$tagStore]).map((c) => Object.getOwnPropertySymbols(c).includes($storeFlattened) ? c[$storeFlattened] : [c]).reduce((a, v) => a.concat(v), []);
+  const flatProps = components.filter((c) => !c[$tagStore]).map((c) => Object.getOwnPropertySymbols(c).includes($storeFlattened) ? c[$storeFlattened] : [c]).reduce((a, v) => a.concat(v), []);
   const shadows = [];
   const q = Object.assign(sparseSet, {
     archetypes,
     changed,
-    components: components2,
+    components,
     notComponents,
     changedComponents,
     allComponents,
@@ -507,14 +514,14 @@ var getAnyComponents = aggregateComponentsFor(Any);
 var getAllComponents = aggregateComponentsFor(All);
 var getNoneComponents = aggregateComponentsFor(None);
 var defineQuery = (...args) => {
-  let components2;
+  let components;
   let any, all, none;
   if (Array.isArray(args[0])) {
-    components2 = args[0];
+    components = args[0];
   } else {
   }
-  if (components2 === void 0 || components2[$componentMap] !== void 0) {
-    return (world) => world ? world[$entityArray] : components2[$entityArray];
+  if (components === void 0 || components[$componentMap] !== void 0) {
+    return (world) => world ? world[$entityArray] : components[$entityArray];
   }
   const query = function(world, clearDiff = true) {
     if (!world[$queryMap].has(query))
@@ -525,7 +532,7 @@ var defineQuery = (...args) => {
       return diff(q, clearDiff);
     return q.dense;
   };
-  query[$queryComponents] = components2;
+  query[$queryComponents] = components;
   query[$queryAny] = any;
   query[$queryAll] = all;
   query[$queryNone] = none;
@@ -585,11 +592,8 @@ var removeQuery = (world, query) => {
 
 // src/Component.js
 var $componentMap = Symbol("componentMap");
-var components = [];
-var defineComponent = (schema, size) => {
-  const component = createStore(schema, size || globalUniverse.capacity);
-  if (schema && Object.keys(schema).length)
-    components.push(component);
+var defineComponent = (universe, schema) => {
+  const component = createStore(schema, universe.capacity);
   return component;
 };
 var incrementBitflag = (world) => {
@@ -620,8 +624,8 @@ var registerComponent = (world, component) => {
   });
   incrementBitflag(world);
 };
-var registerComponents = (world, components2) => {
-  components2.forEach((c) => registerComponent(world, c));
+var registerComponents = (world, components) => {
+  components.forEach((c) => registerComponent(world, c));
 };
 var hasComponent = (world, component, eid) => {
   const registeredComponent = world[$componentMap].get(component);
@@ -687,7 +691,7 @@ var $archetypes = Symbol("archetypes");
 var $localEntities = Symbol("localEntities");
 var $localEntityLookup = Symbol("localEntityLookup");
 var $universe = Symbol("universe");
-var createWorld = (universe = globalUniverse, world = {}) => {
+var createWorld = (universe, world = {}) => {
   world[$universe] = universe;
   universe.worlds.push(world);
   return resetWorld(world);
@@ -778,7 +782,7 @@ var defineSerializer = (target, maxBytes = 2e7) => {
       world = ents;
       ents = ents[$entityArray];
     } else {
-      world = eidToWorld.get(ents[0]);
+      throw "not implemented";
     }
     let where = 0;
     if (!ents.length)
@@ -1003,6 +1007,7 @@ module.exports = __toCommonJS(src_exports);
   addComponent,
   addEntity,
   commitRemovals,
+  createUniverse,
   createWorld,
   defineComponent,
   defineDeserializer,
@@ -1025,6 +1030,7 @@ module.exports = __toCommonJS(src_exports);
   removeEntity,
   removeQuery,
   resetChangedQuery,
+  resetUniverse,
   resetWorld
 });
 //# sourceMappingURL=index.cjs.map

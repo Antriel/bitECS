@@ -12,7 +12,9 @@ import {
   DESERIALIZE_MODE,
   Changed
 } from '../../src/index.js'
-import { resetUniverse, globalUniverse } from '../../src/Universe.js'
+import { resetUniverse, createUniverse } from '../../src/Universe.js'
+
+const globalUniverse = createUniverse()
 
 function getLocalEid(world, eid) {
   const $localEntities = Object.getOwnPropertySymbols(world)[12]
@@ -27,15 +29,15 @@ describe('adhoc deserialize enter query bug', () => {
   })
 
   it('should', () => {
-    const world = createWorld()
+    const world = createWorld(globalUniverse)
 
-    const Component = defineComponent({
+    const Component = defineComponent(globalUniverse, {
       x: Types.f32,
       y: [Types.f32,4],
       rotation: Types.f32
     })
     
-    const Component2 = defineComponent({
+    const Component2 = defineComponent(globalUniverse, {
       x: Types.f32,
       y: [Types.f32,4],
       rotation: Types.f32
@@ -54,7 +56,7 @@ describe('adhoc deserialize enter query bug', () => {
     const serialize = defineSerializer([ Changed(Component) ])
     const deserialize = defineDeserializer([ Component2 ])
     
-    const world2 = createWorld()
+    const world2 = createWorld(globalUniverse)
     const query = defineQuery([ Component2 ])
     const enter = enterQuery(query)
     

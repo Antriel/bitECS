@@ -3,7 +3,6 @@ import { $queryMap, $queries, $dirtyQueries, $notQueries } from './Query.js'
 import { $entityArray, $entityComponents, $entityMasks, $entitySparseSet, removeEntity } from './Entity.js'
 import { resize } from './Storage.js'
 import { SparseSet } from './Util.js'
-import { globalUniverse } from './Universe.js'
 
 export const $resizeThreshold = Symbol('resizeThreshold')
 export const $bitflag = Symbol('bitflag')
@@ -29,7 +28,7 @@ export const $universe = Symbol('universe')
  *
  * @returns {object}
  */
-export const createWorld = (universe = globalUniverse, world = {}) => {
+export const createWorld = (universe, world = {}) => {
   world[$universe] = universe
   universe.worlds.push(world)
   return resetWorld(world)

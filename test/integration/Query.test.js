@@ -4,15 +4,17 @@ import { createWorld } from '../../src/World.js'
 import { addComponent, removeComponent, defineComponent } from '../../src/Component.js'
 import { addEntity, removeEntity } from '../../src/Entity.js'
 import { Changed, defineQuery, enterQuery, Not } from '../../src/Query.js'
-import { globalUniverse, resetUniverse } from '../../src/Universe.js'
+import { createUniverse, resetUniverse } from '../../src/Universe.js'
+
+const globalUniverse = createUniverse()
 
 describe('Query Integration Tests', () => {
   afterEach(() => {
     resetUniverse(globalUniverse)
   })
   it('should define a query and return matching eids', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
     const query = defineQuery([TestComponent])
     const eid = addEntity(world)
     addComponent(world, TestComponent, eid)
@@ -28,8 +30,8 @@ describe('Query Integration Tests', () => {
     strictEqual(ents.length, 0)
   })
   it('should define a query with Not and return matching eids', () => {
-    const world = createWorld()
-    const Foo = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const Foo = defineComponent(globalUniverse, { value: Types.f32 })
     const notFooQuery = defineQuery([Not(Foo)])
     
     const eid0 = addEntity(world)
@@ -55,10 +57,10 @@ describe('Query Integration Tests', () => {
     strictEqual(ents.length, 0)
   })
   it('should correctly populate Not queries when adding/removing components', () => {
-    const world = createWorld()
+    const world = createWorld(globalUniverse)
 
-    const Foo = defineComponent()
-    const Bar = defineComponent()
+    const Foo = defineComponent(globalUniverse)
+    const Bar = defineComponent(globalUniverse)
 
     const fooQuery = defineQuery([Foo])
     const notFooQuery = defineQuery([Not(Foo)])
@@ -158,8 +160,8 @@ describe('Query Integration Tests', () => {
     strictEqual(ents[2], 2)
   })
   it('should define a query with Changed and return matching eids whose component state has changed', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
     const query = defineQuery([Changed(TestComponent)])
     const eid1 = addEntity(world)
     const eid2 = addEntity(world)
@@ -177,8 +179,8 @@ describe('Query Integration Tests', () => {
     strictEqual(ents[0], eid1)
   })
   it('should define a query for an array component with Changed and return matching eids whose component state has changed', () => {
-    const world = createWorld()
-    const ArrayComponent = defineComponent({ value: [Types.f32, 3] })
+    const world = createWorld(globalUniverse)
+    const ArrayComponent = defineComponent(globalUniverse, { value: [Types.f32, 3] })
     const query = defineQuery([Changed(ArrayComponent)])
     const eid1 = addEntity(world)
     const eid2 = addEntity(world)
@@ -196,8 +198,8 @@ describe('Query Integration Tests', () => {
     strictEqual(ents[0], eid1)
   })
   it('should return entities from enter/exitQuery who entered/exited the query', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
     const query = defineQuery([TestComponent])
     const enteredQuery = enterQuery(query)
     const exitedQuery = exitQuery(query)
@@ -223,8 +225,8 @@ describe('Query Integration Tests', () => {
     strictEqual(exited[0], 0)
   })
   it('shouldn\'t pick up entities in enterQuery after adding a component a second time', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
     const query = defineQuery([TestComponent])
     const enteredQuery = enterQuery(query)
 

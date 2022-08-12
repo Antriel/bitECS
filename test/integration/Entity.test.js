@@ -8,7 +8,7 @@ describe('Entity Integration Tests', () => {
     resetUniverse(globalUniverse)
   })
   it('should add and remove entities', () => {
-    const world = createWorld()
+    const world = createWorld(globalUniverse)
     
     const eid1 = addEntity(world)
     strictEqual(globalUniverse.entityCursor, 1)
@@ -35,7 +35,7 @@ describe('Entity Integration Tests', () => {
     strictEqual(removed[2], 2)
   })
   it('should recycle entity IDs after 1% have been removed', () => {
-    const world = createWorld()
+    const world = createWorld(globalUniverse)
 
     const n = 0.01 * MAX_ENTITIES
     for (let i = 0; i < n; i++) {

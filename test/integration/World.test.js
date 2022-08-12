@@ -12,7 +12,7 @@ describe('World Integration Tests', () => {
     resetUniverse(globalUniverse)
   })
   // it('should resize automatically at 80% of ' + defaultSize, () => {
-  //   const world = createWorld()
+  //   const world = createWorld(globalUniverse)
   //   const n = defaultSize * 0.8
   //   for (let i = 0; i < n; i++) {
   //     addEntity(world)

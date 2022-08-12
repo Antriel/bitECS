@@ -4,15 +4,17 @@ import { addComponent, defineComponent } from '../../src/Component.js'
 import { addEntity } from '../../src/Entity.js'
 import { defineSystem } from '../../src/System.js'
 import { defineQuery, Types } from '../../src/index.js'
-import { globalUniverse, resetUniverse } from '../../src/Universe.js'
+import { createUniverse, resetUniverse } from '../../src/Universe.js'
+
+const globalUniverse = createUniverse()
 
 describe('System Integration Tests', () => {
   afterEach(() => {
     resetUniverse(globalUniverse)
   })
   it('should run against a world and update state', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
 
     const query = defineQuery([TestComponent])
     const eid = addEntity(world)

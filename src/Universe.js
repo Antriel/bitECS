@@ -16,13 +16,13 @@ export const resizeThreshold = ({ capacity }) => Math.round(capacity - (capacity
  * Creates a universe.
  *
  */
-export const createUniverse = () => {
+export const createUniverse = (capacity = MAX_ENTITIES) => {
   return {
     worlds: [],
     removedEntities: [],
     components: [],
     entityCursor: 0,
-    capacity: MAX_ENTITIES,
+    capacity: capacity,
   }
 }
 

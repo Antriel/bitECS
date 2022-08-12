@@ -12,7 +12,7 @@ describe('World Unit Tests', () => {
     resetUniverse(globalUniverse)
   })
   it('should initialize all private state', () => {
-    const world = createWorld()
+    const world = createWorld(globalUniverse)
     
     strictEqual(Object.keys(world).length, 0)
 

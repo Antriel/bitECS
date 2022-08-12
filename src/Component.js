@@ -2,7 +2,6 @@ import { $storeSize, createStore, resetStoreFor, resizeStore } from './Storage.j
 import { $queries, queryAddEntity, queryRemoveEntity, queryCheckEntity, commitRemovals } from './Query.js'
 import { $bitflag, $universe } from './World.js'
 import { $entityMasks, $entityComponents, $entitySparseSet } from './Entity.js'
-import { globalUniverse } from './Universe.js'
 
 export const $componentMap = Symbol('componentMap')
 
@@ -12,9 +11,8 @@ export const $componentMap = Symbol('componentMap')
  * @param {object} schema
  * @returns {object}
  */
-export const defineComponent = (schema, size) => {
-  // TODO universe: size should come from universe for this component.
-  const component = createStore(schema, size || globalUniverse.capacity)
+export const defineComponent = (universe, schema) => {
+  const component = createStore(schema, universe.capacity)
   return component
 }
 

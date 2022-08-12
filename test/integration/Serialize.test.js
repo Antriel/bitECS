@@ -8,19 +8,21 @@ import { Changed, defineQuery } from '../../src/Query.js'
 import { TYPES_ENUM } from '../../src/Constants.js'
 import { pipe } from '../../src/index.js'
 import { strict } from 'assert/strict'
-import { globalUniverse, resetUniverse } from '../../src/Universe.js'
+import { createUniverse, resetUniverse } from '../../src/Universe.js'
 
 const Types = TYPES_ENUM
 
 const arraysEqual = (a,b) => !!a && !!b && !(a<b || b<a)
+
+const globalUniverse = createUniverse()
 
 describe('Serialize Integration Tests', () => {
   afterEach(() => {
     resetUniverse(globalUniverse)
   })
   it('should serialize/deserialize entire world of entities and all of their components', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
     const eid = addEntity(world)
 
     addComponent(world, TestComponent, eid)
@@ -39,8 +41,8 @@ describe('Serialize Integration Tests', () => {
     strictEqual(TestComponent.value[eid], 0)
   })
   it('should serialize/deserialize entire world of specific components', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
     const eid = addEntity(world)
     addComponent(world, TestComponent, eid)
 
@@ -59,8 +61,8 @@ describe('Serialize Integration Tests', () => {
     strictEqual(TestComponent.value[eid], 0)
   })
   it('should serialize/deserialize specific components of a queried set of entities', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
     const query = defineQuery([TestComponent])
     const eid = addEntity(world)
     addComponent(world, TestComponent, eid)
@@ -80,11 +82,11 @@ describe('Serialize Integration Tests', () => {
     strictEqual(TestComponent.value[eid], 0)
   })
   it('should serialize/deserialize array types on components', () => {
-    const world1 = createWorld()
-    const world2 = createWorld()
+    const world1 = createWorld(globalUniverse)
+    const world2 = createWorld(globalUniverse)
 
-    const ArrayComponent = defineComponent({ array: [Types.f32, 4] })
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const ArrayComponent = defineComponent(globalUniverse, { array: [Types.f32, 4] })
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
     const query = defineQuery([ArrayComponent, TestComponent])
 
     const serialize = defineSerializer([ArrayComponent, TestComponent])
@@ -113,8 +115,8 @@ describe('Serialize Integration Tests', () => {
 
   })
   it('should deserialize properly with APPEND behavior', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
     const query = defineQuery([TestComponent])
     const eid = addEntity(world)
     addComponent(world, TestComponent, eid)
@@ -137,8 +139,8 @@ describe('Serialize Integration Tests', () => {
     strictEqual(ents[0], appendedEid)
   })
   it('should deserialize properly with MAP behavior', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
     const query = defineQuery([TestComponent])
     const eid = addEntity(world)
     addComponent(world, TestComponent, eid)
@@ -171,9 +173,9 @@ describe('Serialize Integration Tests', () => {
     
   // })
   it('should only serialize changes for Changed components and component properties', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
-    const ArrayComponent = defineComponent({ values: [Types.f32, 3] })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
+    const ArrayComponent = defineComponent(globalUniverse, { values: [Types.f32, 3] })
 
     const eid = addEntity(world)
     addComponent(world, TestComponent, eid)
@@ -211,8 +213,8 @@ describe('Serialize Integration Tests', () => {
     
   })
   it('should only serialize changes for Changed array properties', () => {
-    const world = createWorld()
-    const ArrayComponent = defineComponent({ values: [Types.f32, 3] })
+    const world = createWorld(globalUniverse)
+    const ArrayComponent = defineComponent(globalUniverse, { values: [Types.f32, 3] })
 
     const eid = addEntity(world)
     addComponent(world, ArrayComponent, eid)
@@ -253,8 +255,8 @@ describe('Serialize Integration Tests', () => {
     
   })
   it('shouldn\'t serialize anything using Changed on a component with no changes', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
     const eid = addEntity(world)
 
     addComponent(world, TestComponent, eid)
@@ -268,8 +270,8 @@ describe('Serialize Integration Tests', () => {
     strictEqual(packet.byteLength, 0)
   })
   it('shouldn\'t serialize anything using Changed on an array component with no changes', () => {
-    const world = createWorld()
-    const ArrayComponent = defineComponent({ value: [Types.f32, 3] })
+    const world = createWorld(globalUniverse)
+    const ArrayComponent = defineComponent(globalUniverse, { value: [Types.f32, 3] })
     const eid = addEntity(world)
 
     addComponent(world, ArrayComponent, eid)
@@ -283,10 +285,10 @@ describe('Serialize Integration Tests', () => {
     strictEqual(packet.byteLength, 0)
   })
   it('should serialize and deserialize entities with a mix of single value, array value and tag components', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
-    const ArrayComponent = defineComponent({ value: [Types.f32, 3] })
-    const TagComponent = defineComponent()
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
+    const ArrayComponent = defineComponent(globalUniverse, { value: [Types.f32, 3] })
+    const TagComponent = defineComponent(globalUniverse)
 
     const serialize = defineSerializer([TestComponent, ArrayComponent, TagComponent])
     const deserialize = defineDeserializer([TestComponent, ArrayComponent, TagComponent])
@@ -348,8 +350,8 @@ describe('Serialize Integration Tests', () => {
     strictEqual(TestComponent.value[eid6], 3)
   })
   it('should serialize from a query using pipe', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
     const eid = addEntity(world)
     addComponent(world, TestComponent, eid)
 
@@ -364,8 +366,8 @@ describe('Serialize Integration Tests', () => {
     strictEqual(query(world).length, 1)
   })
   it('should only register changes on the first serializer run', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
     const eid = addEntity(world)
     addComponent(world, TestComponent, eid)
 
@@ -379,8 +381,8 @@ describe('Serialize Integration Tests', () => {
     strictEqual(packet.byteLength, 0)
   })
   it('should output an array of unique EIDs when deserializing', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value0: Types.f32, value1: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value0: Types.f32, value1: Types.f32 })
     const eid0 = addEntity(world)
     addComponent(world, TestComponent, eid0)
     const eid1 = addEntity(world)
@@ -398,8 +400,8 @@ describe('Serialize Integration Tests', () => {
     strictEqual(ents[1], 1)
   })
   it('should create EIDs when deserializing eid type properties with MAP mode even if the entity hasn\'t been created yet', () => {
-    const world = createWorld()
-    const EIDComponent = defineComponent({eid: Types.eid})
+    const world = createWorld(globalUniverse)
+    const EIDComponent = defineComponent(globalUniverse, {eid: Types.eid})
     const eid1 = addEntity(world)
     const eid2 = addEntity(world)
     addComponent(world, EIDComponent, eid1)

@@ -3,22 +3,24 @@ import { Types } from '../../src/index.js'
 import { createWorld } from '../../src/World.js'
 import { $componentMap, addComponent, defineComponent, hasComponent, registerComponent, removeComponent } from '../../src/Component.js'
 import { addEntity } from '../../src/Entity.js'
-import { globalUniverse, resetUniverse } from '../../src/Universe.js'
+import { createUniverse, resetUniverse } from '../../src/Universe.js'
+
+const globalUniverse = createUniverse()
 
 describe('Component Integration Tests', () => {
   afterEach(() => {
     resetUniverse(globalUniverse)
   })
   it('should register components on-demand', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
 
     registerComponent(world, TestComponent)
     assert(world[$componentMap].has(TestComponent))
   })
   it('should register components automatically upon adding to an entity', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
 
     const eid = addEntity(world)
 
@@ -26,8 +28,8 @@ describe('Component Integration Tests', () => {
     assert(world[$componentMap].has(TestComponent))
   })
   it('should add and remove components from an entity', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
 
     const eid = addEntity(world)
 
@@ -38,9 +40,9 @@ describe('Component Integration Tests', () => {
     assert(hasComponent(world, TestComponent, eid) === false)
   })
   it('should only remove the component specified', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent({ value: Types.f32 })
-    const TestComponent2 = defineComponent({ value: Types.f32 })
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse, { value: Types.f32 })
+    const TestComponent2 = defineComponent(globalUniverse, { value: Types.f32 })
 
     const eid = addEntity(world)
 
@@ -54,8 +56,8 @@ describe('Component Integration Tests', () => {
     assert(hasComponent(world, TestComponent2, eid) === true)
   })
   it('should create tag components', () => {
-    const world = createWorld()
-    const TestComponent = defineComponent()
+    const world = createWorld(globalUniverse)
+    const TestComponent = defineComponent(globalUniverse)
 
     const eid = addEntity(world)
 
@@ -66,12 +68,12 @@ describe('Component Integration Tests', () => {
     assert(hasComponent(world, TestComponent, eid) === false)
   })
   it('should correctly register more than 32 components', () => {
-    const world = createWorld()
+    const world = createWorld(globalUniverse)
         
     const eid = addEntity(world)
     
     Array(1024).fill(null)
-      .map(_ => defineComponent())
+      .map(_ => defineComponent(globalUniverse))
       .forEach((c) => {
         addComponent(world, c, eid)
         assert(hasComponent(world, c, eid))
