@@ -20,6 +20,7 @@ export const addEntity = (world) => {
   const { removedEntities, capacity } = world[$universe]
   
   const eid = removedEntities.length > Math.round(capacity * 0.01) ? removedEntities.shift() : world[$universe].entityCursor++
+  if(world[$universe].entityCursor >= world[$universe].capacity) throw new Error(`bitECS - Cannot create entity beyond capacity`)
   
   world[$entitySparseSet].add(eid)
   eidToWorld.set(eid, world)
