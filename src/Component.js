@@ -6,13 +6,6 @@ import { globalUniverse } from './Universe.js'
 
 export const $componentMap = Symbol('componentMap')
 
-export const components = []
-
-export const resizeComponents = (size) => {
-  components.forEach(component => resizeStore(component, size))
-}
-
-
 /**
  * Defines a new component store.
  *
@@ -20,8 +13,8 @@ export const resizeComponents = (size) => {
  * @returns {object}
  */
 export const defineComponent = (schema, size) => {
+  // TODO universe: size should come from universe for this component.
   const component = createStore(schema, size || globalUniverse.capacity)
-  if (schema && Object.keys(schema).length) components.push(component)
   return component
 }
 
