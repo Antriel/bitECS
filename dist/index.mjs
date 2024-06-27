@@ -501,11 +501,12 @@ var queryAddEntity = (q, eid) => {
   q.add(eid);
 };
 var queryCommitRemovals = (q) => {
-  for (let i = q.toRemove.dense.length - 1; i >= 0; i--) {
+  for (let i = 0; i < q.toRemove.dense.length; i++) {
     const eid = q.toRemove.dense[i];
-    q.toRemove.remove(eid);
     q.remove(eid);
   }
+  q.toRemove.dense.length = 0;
+  q.toRemove.sparse.length = 0;
 };
 var commitRemovals = (world) => {
   if (!world[$dirtyQueries].size)

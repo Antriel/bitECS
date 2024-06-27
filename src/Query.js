@@ -333,11 +333,12 @@ export const queryAddEntity = (q, eid) => {
 }
 
 const queryCommitRemovals = (q) => {
-  for (let i = q.toRemove.dense.length-1; i >= 0; i--) {
-    const eid = q.toRemove.dense[i]
-    q.toRemove.remove(eid)
-    q.remove(eid)
+  for (let i = 0; i < q.toRemove.dense.length; i++) {
+    const eid = q.toRemove.dense[i];
+    q.remove(eid);
   }
+  q.toRemove.dense.length = 0
+  q.toRemove.sparse.length = 0
 }
 
 export const commitRemovals = (world) => {
