@@ -965,6 +965,7 @@ export {
   pipe,
   registerComponent,
   registerComponents,
+  registerQuery,
   removeComponent,
   removeEntity,
   removeQuery,
