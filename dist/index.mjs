@@ -495,6 +495,10 @@ var queryCheckEntity = (world, q, eid) => {
   }
   return true;
 };
+var checkEntity = (world, query, eid) => {
+  const q = world[$queryMap].get(query);
+  return queryCheckEntity(world, q, eid);
+};
 var queryAddEntity = (q, eid) => {
   q.toRemove.remove(eid);
   q.entered.add(eid);
@@ -945,6 +949,7 @@ export {
   Types,
   addComponent,
   addEntity,
+  checkEntity,
   commitRemovals,
   createUniverse,
   createWorld,
@@ -963,7 +968,6 @@ export {
   hasComponent,
   parentArray,
   pipe,
-  queryCheckEntity,
   registerComponent,
   registerComponents,
   registerQuery,

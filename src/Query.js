@@ -318,6 +318,11 @@ export const queryCheckEntity = (world, q, eid) => {
   return true
 }
 
+export const checkEntity = (world, query, eid) => {
+  const q = world[$queryMap].get(query)
+  return queryCheckEntity(world, q, eid)
+}
+
 export const queryCheckComponent = (q, c) => {
   const { generationId, bitflag } = c
   const { hasMasks } = q

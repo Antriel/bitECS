@@ -30,6 +30,7 @@ __export(src_exports, {
   Types: () => Types,
   addComponent: () => addComponent,
   addEntity: () => addEntity,
+  checkEntity: () => checkEntity,
   commitRemovals: () => commitRemovals,
   createUniverse: () => createUniverse,
   createWorld: () => createWorld,
@@ -48,7 +49,6 @@ __export(src_exports, {
   hasComponent: () => hasComponent,
   parentArray: () => parentArray,
   pipe: () => pipe,
-  queryCheckEntity: () => queryCheckEntity,
   registerComponent: () => registerComponent,
   registerComponents: () => registerComponents,
   registerQuery: () => registerQuery,
@@ -557,6 +557,10 @@ var queryCheckEntity = (world, q, eid) => {
   }
   return true;
 };
+var checkEntity = (world, query, eid) => {
+  const q = world[$queryMap].get(query);
+  return queryCheckEntity(world, q, eid);
+};
 var queryAddEntity = (q, eid) => {
   q.toRemove.remove(eid);
   q.entered.add(eid);
@@ -1009,6 +1013,7 @@ module.exports = __toCommonJS(src_exports);
   Types,
   addComponent,
   addEntity,
+  checkEntity,
   commitRemovals,
   createUniverse,
   createWorld,
@@ -1027,7 +1032,6 @@ module.exports = __toCommonJS(src_exports);
   hasComponent,
   parentArray,
   pipe,
-  queryCheckEntity,
   registerComponent,
   registerComponents,
   registerQuery,
