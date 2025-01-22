@@ -963,6 +963,7 @@ export {
   hasComponent,
   parentArray,
   pipe,
+  queryCheckEntity,
   registerComponent,
   registerComponents,
   registerQuery,
